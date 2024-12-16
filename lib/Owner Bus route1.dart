@@ -17,7 +17,8 @@ class _Route1PageState extends State<route1> {
 
   // Function to send data to the Flask server
   Future<void> submitDetails() async {
-    final String url = '${Url.Urls}/add/middle/details'; // Replace with your Flask server URL
+    final String url =
+        '${Url.Urls}/add/middle/details'; // Replace with your Flask server URL
 
     final Map<String, String> travelDetails = {
       'middle_point': _middlePointController.text,
@@ -37,13 +38,16 @@ class _Route1PageState extends State<route1> {
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Travel details updated successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Travel details updated successfully')));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to submit details')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to submit details')));
       }
     } catch (error) {
       print('Error: $error');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $error')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $error')));
     }
   }
 
@@ -109,7 +113,7 @@ class _Route1PageState extends State<route1> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) =>  route2()),
+                      MaterialPageRoute(builder: (context) => route2()),
                     );
                   },
                   child: Text('Next'),
