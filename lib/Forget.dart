@@ -114,7 +114,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: !_isReEnterPasswordVisible,
                   decoration: InputDecoration(
                     labelText: 'Re-enter Password',
-                    prefixIcon: const Icon(Icons.lock_outline, color: Colors.blue),
+                    prefixIcon:
+                        const Icon(Icons.lock_outline, color: Colors.blue),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isReEnterPasswordVisible
@@ -125,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         setState(() {
                           _isReEnterPasswordVisible =
-                          !_isReEnterPasswordVisible;
+                              !_isReEnterPasswordVisible;
                         });
                       },
                     ),
