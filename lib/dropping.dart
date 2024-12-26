@@ -1,29 +1,64 @@
 import 'package:flutter/material.dart';
-import 'ticket_review.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'LIst_Of_Passengers.dart';
+import 'Urls.dart';
 
-class DroppingPointSelectionPage extends StatelessWidget {
+
+class DroppingPointSelectionPage extends StatefulWidget {
   const DroppingPointSelectionPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    // Example booking details to be passed
-    final bookingDetails = {
-      'busOperator': 'Example Operator',
-      'busType': 'AC Sleeper',
-      'origin': 'City A',
-      'destination': 'City B',
-      'departureTime': '10:00 AM',
-      'arrivalTime': '6:00 PM',
-      'seatNumber': 'A1',
-      'passengerName': 'John Doe',
-      'gender': 'Male',
-      'age': 30,
-      'boardingPoint': 'Main Terminal',
-      'boardingTime': '9:30 AM',
-      'droppingPoint': '',
-      'droppingTime': '',
-    };
+  _DroppingPointSelectionPageState createState() =>
+      _DroppingPointSelectionPageState();
+}
 
+class _DroppingPointSelectionPageState
+    extends State<DroppingPointSelectionPage> {
+  String? _droppingPoint;
+
+  // Example booking details to be passed
+  final Map<String, String> bookingDetails = {
+    'busOperator': 'Example Operator',
+    'busType': 'AC Sleeper',
+    'origin': 'City A',
+    'destination': 'City B',
+    'departureTime': '10:00 AM',
+    'arrivalTime': '6:00 PM',
+    'seatNumber': 'A1',
+    'passengerName': 'John Doe',
+    'gender': 'Male',
+    'age': '30',
+    'boardingPoint': 'Main Terminal',
+    'boardingTime': '9:30 AM',
+    'droppingPoint': '',
+    'droppingTime': '',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLastEnding();  // Fetch the last ending point when the page is initialized
+  }
+
+  // Fetch the last dropping point from the API
+  Future<void> _fetchLastEnding() async {
+    final response = await http.get(Uri.parse('${Url.Urls}/get/last_ending'));
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      setState(() {
+        _droppingPoint = data['ending'];
+      });
+    } else {
+      setState(() {
+        _droppingPoint = 'No available records found';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dropping Point Selection'),
@@ -41,19 +76,17 @@ class DroppingPointSelectionPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            DroppingPointCard(
-              name: 'Rama Talkies, Opp Ambedkar Bhavan',
-              arrivalTime: '6:30 PM',
+            // Check if dropping point is available or show loading
+            _droppingPoint == null
+                ? const Center(child: CircularProgressIndicator())
+                : DroppingPointCard(
+              name: _droppingPoint!,
               onSelect: () {
-                // Update dropping point details dynamically
-                bookingDetails['droppingPoint'] = 'Rama Talkies, Opp Ambedkar Bhavan';
-                bookingDetails['droppingTime'] = '6:30 PM';
-
-                // Navigate to Ticket Review Screen
+                // Navigate to PassengerListScreen (without passing any parameters)
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => TicketReviewScreen(bookingDetails: bookingDetails),
+                    builder: (context) => const PassengerListScreen(),
                   ),
                 );
               },
@@ -68,13 +101,11 @@ class DroppingPointSelectionPage extends StatelessWidget {
 
 class DroppingPointCard extends StatelessWidget {
   final String name;
-  final String arrivalTime;
   final VoidCallback onSelect;
 
   const DroppingPointCard({
     Key? key,
     required this.name,
-    required this.arrivalTime,
     required this.onSelect,
   }) : super(key: key);
 
@@ -99,11 +130,6 @@ class DroppingPointCard extends StatelessWidget {
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Arrival Time: $arrivalTime',
-                style: const TextStyle(fontSize: 16),
               ),
             ],
           ),

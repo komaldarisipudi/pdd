@@ -1,5 +1,8 @@
-import 'package:bus/payment.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'Urls.dart';
+import 'payment.dart';  // Make sure to import the PaymentPage
 
 void main() {
   runApp(const MyApp());
@@ -12,32 +15,72 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const TicketReviewScreen(
-        bookingDetails: {
-          'busOperator': 'Example Operator',
-          'busType': 'AC Sleeper',
-          'origin': 'City A',
-          'destination': 'City B',
-          'departureTime': '10:00 AM',
-          'arrivalTime': '6:00 PM',
-          'seatNumber': 'A1',
-          'passengerName': 'John Doe',
-          'gender': 'Male',
-          'age': 30,
-          'boardingPoint': 'Main Terminal',
-          'boardingTime': '9:30 AM',
-          'droppingPoint': 'Bus Stand',
-          'droppingTime': '6:30 PM',
-        },
-      ),
+      home: TicketReviewScreen(),
     );
   }
 }
 
-class TicketReviewScreen extends StatelessWidget {
-  final Map<String, dynamic> bookingDetails;
+class TicketReviewScreen extends StatefulWidget {
+  const TicketReviewScreen({Key? key}) : super(key: key);
 
-  const TicketReviewScreen({Key? key, required this.bookingDetails}) : super(key: key);
+  @override
+  _TicketReviewScreenState createState() => _TicketReviewScreenState();
+}
+
+class _TicketReviewScreenState extends State<TicketReviewScreen> {
+  // Booking details that will be updated after fetching from the API
+  Map<String, dynamic> bookingDetails = {
+    'busOperator': 'Example Operator',
+    'busType': 'AC Sleeper',
+    'origin': 'City A',
+    'destination': 'City B',
+    'departureTime': '10:00 AM',
+    'arrivalTime': '6:00 PM',
+    'seatNumber': 'A2',
+    'passengerName': 'Komal',
+    'gender': 'Male',
+    'age': 20,
+    'boardingPoint': 'Main Terminal',
+    'boardingTime': '9:30 AM',
+    'droppingPoint': 'Bus Stand',
+    'droppingTime': '6:30 PM',
+  };
+
+  // Fetch the last available record from the API
+  Future<void> _fetchBookingDetails() async {
+    final response = await http.get(Uri.parse('${Url.Urls}/api/available/last'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      setState(() {
+        bookingDetails = {
+          'busOperator': 'Example Operator', // Add appropriate values from the response
+          'busType': 'AC Sleeper',           // Replace with any appropriate data
+          'origin': data['start'],
+          'destination': data['end'],
+          'departureTime': '10:00 AM',  // You might want to fetch this too if it's available
+          'arrivalTime': '6:00 PM',     // Update accordingly
+          'seatNumber': 'A2',
+          'passengerName': 'Komal',
+          'gender': 'Male',
+          'age': 20,
+          'boardingPoint': data['boarding'],
+          'boardingTime': '9:30 AM',  // Or fetch from response if available
+          'droppingPoint': data['ending'],
+          'droppingTime': '6:30 PM',  // Update accordingly
+        };
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBookingDetails();  // Fetch the data when the screen is initialized
+  }
 
   Widget _buildLocationInfo(String location, String time) {
     return Row(
@@ -138,4 +181,3 @@ class TicketReviewScreen extends StatelessWidget {
     );
   }
 }
-

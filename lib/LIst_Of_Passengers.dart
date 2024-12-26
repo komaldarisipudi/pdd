@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'ticket_review.dart';  // Make sure to import the TicketReviewScreen
 
 void main() {
   runApp(const MyApp());
@@ -19,8 +20,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
-
 class PassengerListScreen extends StatefulWidget {
   const PassengerListScreen({Key? key}) : super(key: key);
 
@@ -35,15 +34,13 @@ class _PassengerListScreenState extends State<PassengerListScreen> {
     {'name': 'Akhil', 'age': 20, 'gender': 'Male'},
   ];
 
-  // Empty function for the FloatingActionButton
-  void _addPassenger() {
-    // Leave this function empty to prevent any action from occurring when the button is pressed
-  }
-
-  void _editPassenger(int index) {
-    // Function to edit an existing passenger; for now, this is a placeholder
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Edit passenger at index $index')),
+  void _selectPassenger(int index) {
+    // Navigate to TicketReviewScreen when selecting a passenger
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TicketReviewScreen(),
+      ),
     );
   }
 
@@ -90,8 +87,8 @@ class _PassengerListScreenState extends State<PassengerListScreen> {
                         style: const TextStyle(fontSize: 14),
                       ),
                       trailing: IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => _editPassenger(index),
+                        icon: const Icon(Icons.check, color: Colors.blue), // Changed to check icon
+                        onPressed: () => _selectPassenger(index),  // Navigate to TicketReviewScreen
                       ),
                     ),
                   );
@@ -102,7 +99,7 @@ class _PassengerListScreenState extends State<PassengerListScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addPassenger, // Empty action
+        onPressed: () {}, // Empty action for now
         backgroundColor: Colors.blue,
         child: const Icon(Icons.add, color: Colors.white),
       ),

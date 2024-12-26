@@ -1,7 +1,6 @@
 import 'package:bus/ticket_conformation.dart';
 import 'package:flutter/material.dart';
 
-
 class PaymentPage extends StatelessWidget {
   const PaymentPage({super.key});
 
@@ -12,22 +11,17 @@ class PaymentPage extends StatelessWidget {
         children: [
           // Top yellow background with text and back button
           Container(
-            height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.14, // Adjusted height for the yellow section
+            height: MediaQuery.of(context).size.height * 0.14, // Adjusted height for the yellow section
             color: Colors.blue[600],
             child: Padding(
               padding: const EdgeInsets.only(top: 20, left: 16, right: 16),
-              // Adjusted padding for the text and back button
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
                     icon: Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
-                      Navigator.pop(
-                          context); // Navigate back when back button is pressed
+                      Navigator.pop(context); // Navigate back when back button is pressed
                     },
                   ),
                   Text(
@@ -39,7 +33,6 @@ class PaymentPage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 40),
-                  // Placeholder for alignment, can be adjusted
                 ],
               ),
             ),
@@ -48,11 +41,8 @@ class PaymentPage extends StatelessWidget {
           // Payment Section
           DraggableScrollableSheet(
             initialChildSize: 0.85,
-            // Adjusted to give more room for the sheet
             minChildSize: 0.5,
-            // Minimum height when collapsed
             maxChildSize: 0.95,
-            // Maximum height when expanded, keeps some space above
             builder: (BuildContext context, ScrollController scrollController) {
               return Container(
                 decoration: BoxDecoration(
@@ -63,7 +53,6 @@ class PaymentPage extends StatelessWidget {
                   ),
                 ),
                 padding: const EdgeInsets.only(top: 20, left: 16, right: 16),
-                // Adjust padding for proper alignment
                 child: ListView(
                   controller: scrollController,
                   children: [
@@ -74,8 +63,7 @@ class PaymentPage extends StatelessWidget {
                         // Payment Method Section
                         Text(
                           'Payment Method',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight
-                              .bold),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 10),
                         Row(
@@ -90,8 +78,7 @@ class PaymentPage extends StatelessWidget {
                         // UPI Apps Section
                         Text(
                           'OR Pay Using UPI',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight
-                              .bold),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 10),
                         Row(
@@ -103,23 +90,9 @@ class PaymentPage extends StatelessWidget {
                               },
                               child: Column(
                                 children: [
-                                  Image.asset(
-                                      'assets/gpay.png', width: 50, height: 50),
-                                  SizedBox(height: 8),
+                                  Image.asset('assets/gpay.png', width: 50, height: 50),
+                                  SizedBox(height: 4), // Reduced space
                                   Text('Google Pay'),
-                                ],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                _showPaymentConfirmation(context, 'PhonePe');
-                              },
-                              child: Column(
-                                children: [
-                                  Image.asset('assets/phonepe.png', width: 50,
-                                      height: 50),
-                                  SizedBox(height: 8),
-                                  Text('PhonePe'),
                                 ],
                               ),
                             ),
@@ -129,9 +102,8 @@ class PaymentPage extends StatelessWidget {
                               },
                               child: Column(
                                 children: [
-                                  Image.asset('assets/paytm.png', width: 50,
-                                      height: 50),
-                                  SizedBox(height: 8),
+                                  Image.asset('assets/paytm.png', width: 50, height: 50),
+                                  SizedBox(height: 4), // Reduced space
                                   Text('Paytm'),
                                 ],
                               ),
@@ -140,43 +112,16 @@ class PaymentPage extends StatelessWidget {
                         ),
                         SizedBox(height: 20),
 
-                        // Total Price Section
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 40),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Total',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '\$52.98',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red[400],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
                         // Centering Pay Now Button
                         Center(
                           child: ElevatedButton(
                             onPressed: () {
                               // Simulating payment completion
-                              _showPaymentConfirmation(
-                                  context, 'Credit/Debit Card');
+                              _showPaymentConfirmation(context, 'Credit/Debit Card');
                             },
                             child: Text('Pay Now'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
-                              // Pay now button color
                               padding: EdgeInsets.symmetric(vertical: 20),
                             ),
                           ),
@@ -200,8 +145,7 @@ class PaymentPage extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Payment Successful'),
-          content: Text(
-              'Your payment via $method has been processed successfully.'),
+          content: Text('Your payment via $method has been processed successfully.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -221,18 +165,8 @@ class PaymentPage extends StatelessWidget {
                   'droppingPoint': 'Station B',
                   'droppingTime': '4:00 PM',
                   'passengers': [
-                    {
-                      'name': 'John Doe',
-                      'gender': 'Male',
-                      'age': 30,
-                      'seat': 'A1'
-                    },
-                    {
-                      'name': 'Jane Doe',
-                      'gender': 'Female',
-                      'age': 28,
-                      'seat': 'A2'
-                    },
+                    {'name': 'John Doe', 'gender': 'Male', 'age': 30, 'seat': 'A1'},
+                    {'name': 'Jane Doe', 'gender': 'Female', 'age': 28, 'seat': 'A2'},
                   ],
                   'totalFare': 52.98,
                 };
@@ -241,9 +175,7 @@ class PaymentPage extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        TicketConfirmationScreen(
-                            bookingDetails: bookingDetails),
+                    builder: (context) => TicketConfirmationScreen(bookingDetails: bookingDetails),
                   ),
                 );
               },

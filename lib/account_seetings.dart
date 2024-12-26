@@ -34,52 +34,6 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Account Settings Section
-            const Text(
-              'Account Settings',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Profile Button
-            ListTile(
-              leading: const Icon(Icons.person, color: Colors.blue),
-              title: const Text('Profile'),
-              subtitle: const Text('View and edit your profile information'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                // Navigate to Profile Page
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
-                  ),
-                );
-              },
-            ),
-            const Divider(),
-
-            // Change Password Button
-            ListTile(
-              leading: const Icon(Icons.lock, color: Colors.blue),
-              title: const Text('Change Password'),
-              subtitle: const Text('Update your password'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                // Navigate to Change Password Page
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ChangePasswordScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-
             // Waiting List Section
             const Text(
               'Waiting List',
@@ -106,46 +60,6 @@ class SettingsScreen extends StatelessWidget {
               },
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// Profile Screen
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profile'),
-      ),
-      body: Center(
-        child: const Text(
-          'Profile Editing Screen',
-          style: TextStyle(fontSize: 16),
-        ),
-      ),
-    );
-  }
-}
-
-// Change Password Screen
-class ChangePasswordScreen extends StatelessWidget {
-  const ChangePasswordScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Change Password'),
-      ),
-      body: Center(
-        child: const Text(
-          'Change Password Screen',
-          style: TextStyle(fontSize: 16),
         ),
       ),
     );

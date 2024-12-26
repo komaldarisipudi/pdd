@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'Urls.dart';
+import 'home.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,8 +25,58 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class WaitingListScreen extends StatelessWidget {
+class WaitingListScreen extends StatefulWidget {
   const WaitingListScreen({Key? key}) : super(key: key);
+
+  @override
+  _WaitingListScreenState createState() => _WaitingListScreenState();
+}
+
+class _WaitingListScreenState extends State<WaitingListScreen> {
+  String from = '';
+  String to = '';
+  String date = '';
+  String seats = '';
+  String probability = '';
+  String availability = '';
+
+  // Fetch the last waiting list entry from the backend
+  void _fetchLastWaitingList() async {
+    String url = '${Url.Urls}/get_last_waiting_list'; // Replace with your server URL
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        // If the server returns a success response
+        var data = json.decode(response.body);
+        setState(() {
+          from = data['from'];
+          to = data['to'];
+          date = data['date'];
+          seats = data['seats'];
+          probability = data['probability'];
+          availability = data['availability'];
+        });
+      } else {
+        // Handle error from server
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      // Handle any network or other errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLastWaitingList();  // Fetch the last waiting list entry when the page loads
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,118 +90,113 @@ class WaitingListScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Title
             const Center(
               child: Text(
                 'Your Waiting List',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue,
+                  color: Colors.red, // Red color as per the prompt
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            // Booking details card
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDetailRow('From:', 'Chennai'),
-                    _buildDetailRow('To:', 'Vizag'),
-                    _buildDetailRow('Date of Travel:', '26-10-2024'),
-                    _buildDetailRow('Seats Required:', '1'),
-                  ],
+
+            // Display fetched data
+            if (from.isEmpty || to.isEmpty) ...[
+              // Loading indicator or error message if no data
+              const Center(child: CircularProgressIndicator()),
+            ] else ...[
+              Text(
+                'From: $from → $to',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            // Availability details
-            Card(
-              color: Colors.yellow[100],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Availability Status',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Chance of getting a seat: 75%',
-                      style: TextStyle(fontSize: 16, color: Colors.orange),
-                    ),
-                    const SizedBox(height: 5),
-                    const Text(
-                      'Current availability: No Bus',
-                      style: TextStyle(fontSize: 16, color: Colors.red),
-                    ),
-                  ],
+              const SizedBox(height: 8),
+              Text(
+                'Date: $date',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
                 ),
               ),
-            ),
-            const Spacer(),
-            // Notify button
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  // Notification logic goes here
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              const SizedBox(height: 8),
+              Text(
+                'No. of Seats Required: $seats',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Probability to get: $probability',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Availability of Bus: $availability',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Notify Button
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Show notification when button is pressed
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Notification'),
+                          content: const Text('You will be notified when the bus is available.'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                // Navigate back to the Komal screen after pressing OK
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => Komal()), // Use your actual Komal class here
+                                );
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red, // Red color for the button
+                    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Notify When Bus Available',
+                    style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ),
-                child: const Text(
-                  'Notify When Bus Available',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
               ),
-            ),
-            const SizedBox(height: 20),
+            ],
           ],
         ),
-      ),
-    );
-  }
-
-  // Helper widget to display booking details in rows
-  Widget _buildDetailRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black54,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
-            ),
-          ),
-        ],
       ),
     );
   }

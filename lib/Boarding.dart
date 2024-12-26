@@ -1,5 +1,7 @@
+import 'dart:convert'; // For json decoding
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http; // For HTTP requests
+import 'Urls.dart';
 import 'dropping.dart';
 
 void main() {
@@ -26,30 +28,47 @@ class BoardingPointSelectionPage extends StatefulWidget {
   const BoardingPointSelectionPage({Key? key}) : super(key: key);
 
   @override
-  _BoardingPointSelectionPageState createState() => _BoardingPointSelectionPageState();
+  _BoardingPointSelectionPageState createState() =>
+      _BoardingPointSelectionPageState();
 }
 
-class _BoardingPointSelectionPageState extends State<BoardingPointSelectionPage> {
+class _BoardingPointSelectionPageState
+    extends State<BoardingPointSelectionPage> {
   String? _selectedBoardingPoint;
 
-  final List<Map<String, String>> _boardingPoints = [
-    {
-      'name': 'Koyembedu Omni Bus Stand',
-      'address': 'Koyembedu, Chennai',
-      'departureTime': '17:30 PM',
-    },
-    {
-      'name': 'Madhavaram Bus Stand',
-      'address': 'Madhavaram, Chennai',
-      'departureTime': '18:00 PM',
-    },
-    {
-      'name': 'CMBT',
-      'address': 'Chennai Mofussil Bus Terminus',
-      'departureTime': '19:00 PM',
-    },
-    // Add more boarding points as needed
-  ];
+  // Default boarding point list if API fails to load
+  List<Map<String, String>> _boardingPoints = [];
+
+  // Fetch the last boarding point from the server
+  Future<void> _fetchLastBoardingPoint() async {
+    final response =
+    await http.get(Uri.parse('${Url.Urls}/get/last_boarding'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        _boardingPoints = [
+          {
+            'name': data['boarding'], // Set the boarding point from the API response
+          }
+        ];
+      });
+    } else {
+      setState(() {
+        _boardingPoints = [
+          {
+            'name': 'No boarding point found',
+          }
+        ];
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLastBoardingPoint(); // Fetch the boarding point when the page loads
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,20 +90,24 @@ class _BoardingPointSelectionPageState extends State<BoardingPointSelectionPage>
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
+              child: _boardingPoints.isNotEmpty
+                  ? ListView.builder(
                 itemCount: _boardingPoints.length,
                 itemBuilder: (context, index) {
                   return BoardingPointCard(
                     boardingPoint: _boardingPoints[index],
-                    isSelected: _selectedBoardingPoint == _boardingPoints[index]['name'],
+                    isSelected: _selectedBoardingPoint ==
+                        _boardingPoints[index]['name'],
                     onSelect: () {
                       setState(() {
-                        _selectedBoardingPoint = _boardingPoints[index]['name'];
+                        _selectedBoardingPoint =
+                        _boardingPoints[index]['name'];
                       });
                     },
                   );
                 },
-              ),
+              )
+                  : const Center(child: CircularProgressIndicator()),
             ),
             const SizedBox(height: 20),
             Center(
@@ -94,7 +117,9 @@ class _BoardingPointSelectionPageState extends State<BoardingPointSelectionPage>
                     : () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const DroppingPointSelectionPage()),
+                    MaterialPageRoute(
+                        builder: (context) =>
+                        const DroppingPointSelectionPage()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -149,26 +174,12 @@ class BoardingPointCard extends StatelessWidget {
               },
             ),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    boardingPoint['name']!,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    boardingPoint['address']!,
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Departure: ${boardingPoint['departureTime']}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
+              child: Text(
+                boardingPoint['name']!,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

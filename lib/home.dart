@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:bus/seats.dart';
+import 'package:bus/ticket_conformation.dart';
+import 'package:bus/waitinglsit.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'Urls.dart'; // Ensure this file contains the URL configuration
-
+import 'Urls.dart';
+import 'Waitinglist.dart';
+import 'account_seetings.dart'; // Ensure this file contains the URL configuration
 
 class Komal extends StatefulWidget {
   const Komal({Key? key}) : super(key: key);
@@ -12,14 +15,14 @@ class Komal extends StatefulWidget {
   _KomalState createState() => _KomalState();
 }
 
-
-
 class _KomalState extends State<Komal> {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   bool _isLoading = false;
   List<dynamic> _busDetails = [];
+
+  int _selectedIndex = 0;
 
   @override
   void dispose() {
@@ -44,12 +47,44 @@ class _KomalState extends State<Komal> {
     });
 
     try {
-      final response = await http.get(
+      final availableResponse = await http.post(
+        Uri.parse('${Url.Urls}/add/available'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'start': from,
+          'end': to,
+          'boarding': 'Boarding Info',
+          'ending': 'Ending Info'
+        }),
+      );
+
+      if (availableResponse.statusCode != 200 && availableResponse.statusCode != 201) {
+        final responseBody = jsonDecode(availableResponse.body);
+        _showMessage(responseBody['error'] ?? 'Failed to update available details.');
+      }
+
+      final busScheduleResponse = await http.post(
+        Uri.parse('${Url.Urls}/add/bus_schedule'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'start': from,
+          'end': to,
+          'boarding': 'Boarding Info',
+          'ending': 'Ending Info'
+        }),
+      );
+
+      if (busScheduleResponse.statusCode != 200 && busScheduleResponse.statusCode != 201) {
+        final responseBody = jsonDecode(busScheduleResponse.body);
+        _showMessage(responseBody['error'] ?? 'Failed to add bus schedule.');
+      }
+
+      final busResponse = await http.get(
         Uri.parse('${Url.Urls}/get/findbus'),
       );
 
-      if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
+      if (busResponse.statusCode == 200) {
+        final responseBody = jsonDecode(busResponse.body);
         final buses = responseBody['bus_details'] as List<dynamic>;
 
         final filteredBuses = buses.where((bus) {
@@ -65,7 +100,7 @@ class _KomalState extends State<Komal> {
           _showMessage('No buses found for the selected route.');
         }
       } else {
-        final responseBody = jsonDecode(response.body);
+        final responseBody = jsonDecode(busResponse.body);
         _showMessage(responseBody['error'] ?? 'Failed to fetch bus details.');
       }
     } catch (e) {
@@ -90,6 +125,41 @@ class _KomalState extends State<Komal> {
         builder: (context) => SeatSelectionScreen(),
       ),
     );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0: // Home
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Komal(),
+          ),
+        );
+        break;
+      case 1: // Booking
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TicketConfirmationScreen(
+              bookingDetails: {},
+            ),
+          ),
+        );
+        break;
+      case 2: // My Profile
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WaitingListScreen(),
+          ),
+        );
+        break;
+    }
   }
 
   @override
@@ -168,7 +238,7 @@ class _KomalState extends State<Komal> {
                   AlwaysStoppedAnimation<Color>(Colors.white),
                 )
                     : const Text(
-                  'Submit & Search',
+                  'Search',
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
@@ -214,9 +284,56 @@ class _KomalState extends State<Komal> {
                   );
                 },
               ),
+              const SizedBox(height: 16),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+    Navigator.push(
+    context,
+    MaterialPageRoute(
+    builder: (context) => Waitinggg(
+    from: _fromController.text.trim(),
+    to: _toController.text.trim(),
+    date: _dateController.text.trim(),
+    ),
+    ),
+    );
+    },
+    style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Waiting List',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+              ),
             ],
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book),
+            label: 'Booking',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: 'Waiting List',
+          ),
+        ],
       ),
     );
   }
