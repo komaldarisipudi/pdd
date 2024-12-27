@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'LIst_Of_Passengers.dart';
 import 'Urls.dart';
 
-
 class DroppingPointSelectionPage extends StatefulWidget {
   const DroppingPointSelectionPage({Key? key}) : super(key: key);
 
@@ -38,7 +37,7 @@ class _DroppingPointSelectionPageState
   @override
   void initState() {
     super.initState();
-    _fetchLastEnding();  // Fetch the last ending point when the page is initialized
+    _fetchLastEnding(); // Fetch the last ending point when the page is initialized
   }
 
   // Fetch the last dropping point from the API
@@ -121,14 +120,24 @@ class DroppingPointCard extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              GestureDetector(
+                onTap: onSelect,
+                child: const Icon(
+                  Icons.circle, // Dot symbol
+                  size: 16,
+                  color: Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],

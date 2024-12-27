@@ -45,19 +45,16 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   // Fetch seat statuses and update based on the server response
-  // Fetch seat statuses and update based on the server response
   Future<void> _fetchSeatStatuses() async {
     for (int i = 0; i < _seatStatuses.length; i++) {
       final isAvailable = await _checkSeatAvailability(i + 1);
-      print('Seat ${i + 1} availability: $isAvailable'); // Debugging output
       setState(() {
-        // 0: Available (green), 1: Booked (black)
-        _seatStatuses[i] = isAvailable ? 0 : 1;
+        _seatStatuses[i] = isAvailable ? 0 : 1; // 0: Available, 1: Booked
       });
     }
   }
 
-// Check seat availability by calling the API
+  // Check seat availability by calling the API
   Future<bool> _checkSeatAvailability(int seatNo) async {
     try {
       final response = await http.get(
@@ -66,7 +63,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('API Response: ${data}'); // Debugging output
         return data['exists']; // true if seat is available
       } else {
         throw Exception('Failed to check seat availability');
@@ -77,16 +73,76 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     }
   }
 
-// Define the seat button color logic
+  // Update selected seats by calling the backend API
+  Future<void> _updateSeats() async {
+    List<int> selectedSeats = [];
+    for (int i = 0; i < _seatStatuses.length; i++) {
+      if (_seatStatuses[i] == 2) {
+        selectedSeats.add(i + 1);
+      }
+    }
+
+    for (int seatNo in selectedSeats) {
+      await _updateSeatAvailability(seatNo);
+    }
+
+    // Show confirmation message and navigate to next page
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Seats updated successfully!')),
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const BoardingPointSelectionPage(),
+      ),
+    );
+  }
+
+  // Send a POST request to update a seat's availability
+  Future<void> _updateSeatAvailability(int seatNo) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${Url.Urls}/update/seat'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'seat_no': seatNo}),
+      );
+
+      if (response.statusCode == 200) {
+        print('Seat $seatNo updated successfully.');
+      } else {
+        throw Exception('Failed to update seat $seatNo');
+      }
+    } catch (e) {
+      print('Error updating seat $seatNo: $e');
+    }
+  }
+
+  // Get seat button color
   Color _getSeatColor(int index) {
     switch (_seatStatuses[index]) {
-      case 0: // Available (green)
-        return _availableColor;
-      case 1: // Booked (black)
-        return _bookedColor;
+      case 0:
+        return _availableColor; // Available (green)
+      case 1:
+        return _bookedColor; // Booked (black)
+      case 2:
+        return _selectedColor; // Selected (light green)
       default:
         return _availableColor;
     }
+  }
+
+  // Toggle seat selection
+  void _toggleSeatSelection(int index) {
+    setState(() {
+      if (_seatStatuses[index] == 0) {
+        _seatStatuses[index] = 2; // Mark as selected
+        _selectedSeatsCount++;
+      } else if (_seatStatuses[index] == 2) {
+        _seatStatuses[index] = 0; // Deselect
+        _selectedSeatsCount--;
+      }
+    });
   }
 
   @override
@@ -191,17 +247,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _selectedSeatsCount > 0
-                        ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                          const BoardingPointSelectionPage(),
-                        ),
-                      );
-                    }
-                        : null,
+                    onPressed: _selectedSeatsCount > 0 ? _updateSeats : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       padding: const EdgeInsets.symmetric(vertical: 15),
@@ -220,23 +266,10 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     );
   }
 
-  // Update seat selection toggle behavior
-  void _toggleSeatSelection(int index) {
-    setState(() {
-      if (_seatStatuses[index] == 0) { // Only available seats can be selected
-        _seatStatuses[index] = 2; // Mark as selected
-        _selectedSeatsCount++;
-      } else if (_seatStatuses[index] == 2) { // If already selected, deselect
-        _seatStatuses[index] = 0;
-        _selectedSeatsCount--;
-      }
-    });
-  }
-
-// Build the seat button
+  // Build the seat button
   Widget _buildSeatButton(int index) {
     return ElevatedButton(
-      onPressed: _seatStatuses[index] != 1 ? () => _toggleSeatSelection(index) : null, // Can't select if booked
+      onPressed: _seatStatuses[index] != 1 ? () => _toggleSeatSelection(index) : null,
       style: ElevatedButton.styleFrom(
         backgroundColor: _getSeatColor(index),
         shape: RoundedRectangleBorder(
