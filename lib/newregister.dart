@@ -43,10 +43,21 @@ class _RegisterPageState extends State<RegisterPage> {
     String email = _emailController.text;
     String password = _passwordController.text;
 
+    // Regular expression for email validation
+    final emailRegex = RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       // Show an error if any field is empty
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    if (!emailRegex.hasMatch(email)) {
+      // Show an error if email is not valid
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email address')),
       );
       return;
     }
@@ -92,6 +103,7 @@ class _RegisterPageState extends State<RegisterPage> {
       print("Error: $e");
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -120,7 +120,7 @@ class TicketConfirmationScreen extends StatelessWidget {
                     const Divider(height: 30),
 
                     // Journey Details
-                    _buildDetailRow('Travel Time', busSchedule['travel_time']),
+                    _buildDetailRow('Starting Time', busSchedule['travel_time']),
                     _buildDetailRow('Ending Time', busSchedule['ending_time']),
                     const Divider(height: 30),
 
@@ -133,7 +133,7 @@ class TicketConfirmationScreen extends StatelessWidget {
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          '\₹${busPrice.toStringAsFixed(2)}', // Updated total fare
+                          '₹${busPrice.toStringAsFixed(2)}', // Updated total fare
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

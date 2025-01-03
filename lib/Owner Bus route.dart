@@ -17,33 +17,66 @@ class _TravelDetailsAppState extends State<TravelDetailsApp> {
 
   // Function to send data to the Flask server
   Future<void> submitDetails() async {
-    final String url = '${Url.Urls}/add/travel/details'; // Replace with your Flask server URL
+    final String url1 = '${Url.Urls}/add/travel/details'; // Flask endpoint 1
+    final String url2 = '${Url.Urls}/add/bus/travel/details'; // Flask endpoint 2
 
     final Map<String, String> travelDetails = {
       'starting_point': _startingPointController.text,
       'boarding_point': _boardingPointController.text,
-      'time': _timeController.text,
+      'time': _timeController.text, // For the first endpoint
+      'starting_time': _timeController.text, // For the second endpoint
     };
 
     try {
-      final response = await http.post(
-        Uri.parse(url),
+      // Send the first request
+      final response1 = await http.post(
+        Uri.parse(url1),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(travelDetails),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Success, show a message or navigate to the next page
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Travel details updated successfully')));
+      if (response1.statusCode == 200 || response1.statusCode == 201) {
+        // If the first request is successful, send the second request
+        final response2 = await http.post(
+          Uri.parse(url2),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'starting_point': _startingPointController.text,
+            'boarding_point': _boardingPointController.text,
+            'starting_time': _timeController.text, // Use the correct field name
+          }),
+        );
+
+        if (response2.statusCode == 200 || response2.statusCode == 201) {
+          // Success for both requests
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Travel details submitted successfully to both endpoints')),
+          );
+        } else {
+          // Debug the second response
+          print('Second endpoint failed: ${response2.statusCode} ${response2.body}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to submit details to the second endpoint')),
+          );
+        }
       } else {
-        // Handle failure (400, 500, etc.)
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to submit details')));
+        // Handle failure for the first request
+        print('First endpoint failed: ${response1.statusCode} ${response1.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit details to the first endpoint')),
+        );
       }
     } catch (error) {
-      // Handle errors (e.g., network issues)
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $error')));
+      // Handle network or other errors
+      print('Error during requests: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $error')),
+      );
     }
   }
+
+
+
 
 
 

@@ -15,29 +15,48 @@ class _Route1PageState extends State<route1> {
   final TextEditingController _pointController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
 
-  // Function to send data to the Flask server
+  // Function to send data to both routes
   Future<void> submitDetails() async {
-    final String url =
-        '${Url.Urls}/add/middle/details'; // Replace with your Flask server URL
+    final String url1 = '${Url.Urls}/add/middle/details'; // First endpoint
+    final String url2 = '${Url.Urls}/add/bus/middle/details'; // Second endpoint
 
-    final Map<String, String> travelDetails = {
+    // Data for the first route
+    final Map<String, String> travelDetails1 = {
       'middle_point': _middlePointController.text,
       'point': _pointController.text,
       'time': _timeController.text,
     };
 
+    // Data for the second route
+    final Map<String, String> travelDetails2 = {
+      'middle_point': _middlePointController.text,
+      'middle_boarding_point': _pointController.text,
+      'middle_time': _timeController.text,
+    };
+
     try {
-      final response = await http.post(
-        Uri.parse(url),
+      // First POST request to /add/middle/details
+      final response1 = await http.post(
+        Uri.parse(url1),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode(travelDetails),
+        body: json.encode(travelDetails1),
       );
 
-      // Print the response for debugging
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      // Second POST request to /add/bus/middle/details
+      final response2 = await http.post(
+        Uri.parse(url2),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(travelDetails2),
+      );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      // Print responses for debugging
+      print('Response 1 status: ${response1.statusCode}');
+      print('Response 1 body: ${response1.body}');
+      print('Response 2 status: ${response2.statusCode}');
+      print('Response 2 body: ${response2.body}');
+
+      if ((response1.statusCode == 200 || response1.statusCode == 201) &&
+          (response2.statusCode == 200 || response2.statusCode == 201)) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Travel details updated successfully')));
       } else {

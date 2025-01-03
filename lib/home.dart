@@ -288,18 +288,18 @@ class _KomalState extends State<Komal> {
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-    Navigator.push(
-    context,
-    MaterialPageRoute(
-    builder: (context) => Waitinggg(
-    from: _fromController.text.trim(),
-    to: _toController.text.trim(),
-    date: _dateController.text.trim(),
-    ),
-    ),
-    );
-    },
-    style: ElevatedButton.styleFrom(
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Waitinggg(
+                          from: _fromController.text.trim(),
+                          to: _toController.text.trim(),
+                          date: _dateController.text.trim(),
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 12),

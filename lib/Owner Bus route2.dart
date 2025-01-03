@@ -16,9 +16,10 @@ class _Route2PageState extends State<route2> {
   final TextEditingController _pointController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
 
-  // Function to send data to the Flask server
+  // Function to send data to both Flask server endpoints
   Future<void> submitDetails() async {
-    final String url = '${Url.Urls}/add/endingpoint/details'; // Replace with your Flask server URL
+    final String url1 = '${Url.Urls}/add/endingpoint/details'; // Endpoint 1
+    final String url2 = '${Url.Urls}/add/bus/ending/details'; // Endpoint 2
 
     final Map<String, String> travelDetails = {
       'ending_point': _endingPointController.text,
@@ -26,25 +27,45 @@ class _Route2PageState extends State<route2> {
       'time': _timeController.text,
     };
 
+    final Map<String, String> busTravelDetails = {
+      'ending_point': _endingPointController.text,
+      'ending_boarding_point': _pointController.text, // Note the field name change
+      'ending_time': _timeController.text,           // Note the field name change
+    };
+
     try {
-      final response = await http.post(
-        Uri.parse(url),
+      // Send data to the first endpoint
+      final response1 = await http.post(
+        Uri.parse(url1),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(travelDetails),
       );
 
-      // Print the response for debugging
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      // Send data to the second endpoint
+      final response2 = await http.post(
+        Uri.parse(url2),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(busTravelDetails),
+      );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Travel details updated successfully')));
+      // Print the response for debugging
+      print('Response 1 status: ${response1.statusCode}');
+      print('Response 1 body: ${response1.body}');
+      print('Response 2 status: ${response2.statusCode}');
+      print('Response 2 body: ${response2.body}');
+
+      if ((response1.statusCode == 200 || response1.statusCode == 201) &&
+          (response2.statusCode == 200 || response2.statusCode == 201)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Travel details updated successfully')));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to submit details')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Failed to submit details')));
       }
     } catch (error) {
       print('Error: $error');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $error')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $error')));
     }
   }
 
@@ -110,7 +131,7 @@ class _Route2PageState extends State<route2> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) =>  DriverDetailsApp()),
+                      MaterialPageRoute(builder: (context) => DriverDetailsApp()),
                     );
                   },
                   child: Text('Submit'),

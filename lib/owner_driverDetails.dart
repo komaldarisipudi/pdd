@@ -49,8 +49,8 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
       final String licenseNo = _licenseController.text.trim();
       final String emailId = _emailController.text.trim();
 
-      // Prepare the request body
-      final Map<String, dynamic> driverData = {
+      // Prepare the request body for the first route
+      final Map<String, dynamic> driverDataForFirstRoute = {
         'driver_name': driverName,
         'phone_no': phoneNo,
         'second_no': secondNo,
@@ -58,36 +58,77 @@ class _DriverDetailsScreenState extends State<DriverDetailsScreen> {
         'email_id': emailId,
       };
 
+      // Prepare the request body for the second route
+      final Map<String, dynamic> driverDataForSecondRoute = {
+        'driver_name': driverName,
+        'driver_no': phoneNo,
+        'driver_second_no': secondNo,
+        'driver_license': licenseNo,
+        'driver_email': emailId,
+      };
+
       // Debug: Print data being sent
-      print('Sending driver data: $driverData');
+      print('Sending driver data to first route: $driverDataForFirstRoute');
+      print('Sending driver data to second route: $driverDataForSecondRoute');
 
-      // Send POST request to Flask API
-      final response = await http.post(
-        Uri.parse('${Url.Urls}/add/driver'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(driverData),
-      );
+      // Create a list of futures for concurrent requests
+      List<Future> requests = [
+        // Send POST request to the first route
+        http.post(
+          Uri.parse('${Url.Urls}/add/driver'),  // The first route
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(driverDataForFirstRoute),
+        ),
+        // Send POST request to the second route
+        http.post(
+          Uri.parse('${Url.Urls}/add/bus/driver/details'),  // The second route
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(driverDataForSecondRoute),
+        ),
+      ];
 
-      // Check server response
-      if (response.statusCode == 201) {
+      // Wait for both requests to complete
+      try {
+        final responses = await Future.wait(requests);
+
+        // Debug: Log status and body of responses
+        for (var response in responses) {
+          print('Response status: ${response.statusCode}');
+          print('Response body: ${response.body}');
+        }
+
+        // Check if both requests were successful (status code 200 or 201)
+        if ((responses[0].statusCode == 200 || responses[0].statusCode == 201) &&
+            (responses[1].statusCode == 200 || responses[1].statusCode == 201)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Driver details added successfully!')),
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const BusBuddyApp()),
+          );
+        } else {
+          // Log the response bodies for debugging
+          final responseData1 = json.decode(responses[0].body);
+          final responseData2 = json.decode(responses[1].body);
+
+          // Handle error responses more specifically
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${responseData1['error'] ?? 'Something went wrong'}')),
+          );
+        }
+      } catch (e) {
+        // Handle error if both requests fail
+        print('Error: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Driver details added successfully!')),
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const BusBuddyApp()),
-        );
-      } else {
-        // Log the response body for debugging
-        print('Response status: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        final Map<String, dynamic> responseData = json.decode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(responseData['error'] ?? 'Something went wrong')),
+          const SnackBar(content: Text('Failed to add driver details')),
         );
       }
     }
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {

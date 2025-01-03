@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'Urls.dart';
-import 'payment.dart';  // Make sure to import the PaymentPage
+import 'payment.dart';  // Import the PaymentPage
 
 class TicketReviewScreen extends StatefulWidget {
   final String passengerName;
@@ -46,24 +46,71 @@ class _TicketReviewScreenState extends State<TicketReviewScreen> {
           'busType': 'AC Sleeper',
           'origin': data['start'],
           'destination': data['end'],
-          'departureTime': '10:00 AM',
-          'arrivalTime': '6:00 PM',
+          'departureTime': '6:00 AM', // Placeholder, updated later
+          'arrivalTime': '6:00 PM', // Placeholder, updated later
           'seatNumber': 'A2',
           'boardingPoint': data['boarding'],
-          'boardingTime': '9:30 AM',
+          'boardingTime': '6:00 AM',
           'droppingPoint': data['ending'],
-          'droppingTime': '6:30 PM',
+          'droppingTime': '6:00 PM',
         };
       });
     } else {
-      throw Exception('Failed to load data');
+      throw Exception('Failed to load booking details');
     }
   }
+
+  Future<void> _fetchTravelTime() async {
+    final String start = bookingDetails['origin'];
+    final String end = bookingDetails['destination'];
+
+    try {
+      final response = await http.post(
+        Uri.parse('${Url.Urls}/get/travel_time'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'start': start,
+          'end': end,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final travelTime = data['travel_time'];
+        final endingTime = data['ending_time'];
+
+        setState(() {
+          // Update departureTime, arrivalTime, boardingTime, and droppingTime
+          bookingDetails['departureTime'] = travelTime;
+          bookingDetails['arrivalTime'] = endingTime;
+          bookingDetails['boardingTime'] = travelTime;  // Same as travelTime
+          bookingDetails['droppingTime'] = endingTime;  // Same as endingTime
+        });
+
+        print('Travel Time: $travelTime');
+        print('Ending Time: $endingTime');
+      } else {
+        print('Error fetching travel time: ${response.body}');
+      }
+    } catch (e) {
+      print('Error fetching travel time: $e');
+    }
+  }
+
+
+
+
+
 
   @override
   void initState() {
     super.initState();
-    _fetchBookingDetails();
+    _fetchBookingDetails().then((_) {
+      // After fetching booking details, fetch travel time
+      _fetchTravelTime();
+    });
   }
 
   Widget _buildLocationInfo(String location, String time) {

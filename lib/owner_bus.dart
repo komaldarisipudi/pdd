@@ -59,27 +59,41 @@ class _BusDetailsFormScreenState extends State<BusDetailsFormScreen> {
     };
 
     try {
-      final response = await http.post(
+      // Send to the first endpoint
+      final response1 = await http.post(
         Uri.parse('${Url.Urls}/add/bus/details'), // Replace with actual API URL
         headers: {'Content-Type': 'application/json'},
         body: json.encode(busDetails),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bus details submitted successfully!')),
+      if (response1.statusCode == 200 || response1.statusCode == 201) {
+        // Send to the second endpoint
+        final response2 = await http.post(
+          Uri.parse('${Url.Urls}/add/final/bus/details'), // Replace with the final API URL
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(busDetails),
         );
 
-        // Navigate to the next screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>  TravelDetailsApp(),
-          ),
-        );
+        if (response2.statusCode == 200 || response2.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Bus details submitted successfully!')),
+          );
+
+          // Navigate to the next screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TravelDetailsApp(),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error in final submission: ${response2.body}')),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${response.body}')),
+          SnackBar(content: Text('Error in initial submission: ${response1.body}')),
         );
       }
     } catch (e) {
