@@ -1,8 +1,21 @@
-import 'package:bus/ticket_conformation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';  // For encoding data as JSON
+import 'package:bus/ticket_conformation.dart';
+
+import 'Urls.dart';  // Import your TicketConfirmationScreen
 
 class PaymentPage extends StatelessWidget {
-  const PaymentPage({super.key});
+  final String passengerName;
+  final String passengerGender;
+  final int passengerAge;
+
+  const PaymentPage({
+    Key? key,
+    required this.passengerName,
+    required this.passengerGender,
+    required this.passengerAge,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +24,7 @@ class PaymentPage extends StatelessWidget {
         children: [
           // Top yellow background with text and back button
           Container(
-            height: MediaQuery.of(context).size.height * 0.14, // Adjusted height for the yellow section
+            height: MediaQuery.of(context).size.height * 0.14,
             color: Colors.blue[600],
             child: Padding(
               padding: const EdgeInsets.only(top: 20, left: 16, right: 16),
@@ -21,7 +34,7 @@ class PaymentPage extends StatelessWidget {
                   IconButton(
                     icon: Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
-                      Navigator.pop(context); // Navigate back when back button is pressed
+                      Navigator.pop(context);
                     },
                   ),
                   Text(
@@ -56,11 +69,9 @@ class PaymentPage extends StatelessWidget {
                 child: ListView(
                   controller: scrollController,
                   children: [
-                    // Payment Details (Simplified)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Payment Method Section
                         Text(
                           'Payment Method',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -91,7 +102,7 @@ class PaymentPage extends StatelessWidget {
                               child: Column(
                                 children: [
                                   Image.asset('assets/gpay.png', width: 50, height: 50),
-                                  SizedBox(height: 4), // Reduced space
+                                  SizedBox(height: 4),
                                   Text('Google Pay'),
                                 ],
                               ),
@@ -103,7 +114,7 @@ class PaymentPage extends StatelessWidget {
                               child: Column(
                                 children: [
                                   Image.asset('assets/paytm.png', width: 50, height: 50),
-                                  SizedBox(height: 4), // Reduced space
+                                  SizedBox(height: 4),
                                   Text('Paytm'),
                                 ],
                               ),
@@ -112,12 +123,11 @@ class PaymentPage extends StatelessWidget {
                         ),
                         SizedBox(height: 20),
 
-                        // Centering Pay Now Button
+                        // Pay Now Button
                         Center(
                           child: ElevatedButton(
                             onPressed: () {
-                              // Simulating payment completion
-                              _showPaymentConfirmation(context, 'Credit/Debit Card');
+                              _makePayment(context);
                             },
                             child: Text('Pay Now'),
                             style: ElevatedButton.styleFrom(
@@ -138,7 +148,6 @@ class PaymentPage extends StatelessWidget {
     );
   }
 
-  // Function to show payment confirmation dialog and navigate to FinOrderPage
   void _showPaymentConfirmation(BuildContext context, String method) {
     showDialog(
       context: context,
@@ -149,10 +158,8 @@ class PaymentPage extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () {
-                // Close the dialog and navigate to TicketConfirmationScreen
-                Navigator.pop(context); // Close the dialog
-
-                // Example bookingDetails map (you need to replace it with actual data)
+                Navigator.pop(context);
+                // Example bookingDetails map (replace with actual data)
                 Map<String, dynamic> bookingDetails = {
                   'busOperator': 'XYZ Travels',
                   'busNumber': 'B123',
@@ -171,7 +178,6 @@ class PaymentPage extends StatelessWidget {
                   'totalFare': 52.98,
                 };
 
-                // Navigate to TicketConfirmationScreen
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -185,5 +191,29 @@ class PaymentPage extends StatelessWidget {
         );
       },
     );
+  }
+
+  // Send data to backend API
+  Future<void> _makePayment(BuildContext context) async {
+    final url = Uri.parse('${Url.Urls}/add_person');  // Replace with your actual API URL
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'name': passengerName,
+        'age': passengerAge,
+        'gender': passengerGender,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      _showPaymentConfirmation(context, 'Credit/Debit Card');
+    } else {
+      // Handle errors if the request fails
+      print('Failed to add person: ${response.body}');
+    }
   }
 }

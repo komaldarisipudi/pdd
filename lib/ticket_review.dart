@@ -40,21 +40,31 @@ class _TicketReviewScreenState extends State<TicketReviewScreen> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      setState(() {
-        bookingDetails = {
-          'busOperator': 'Example Operator',
-          'busType': 'AC Sleeper',
-          'origin': data['start'],
-          'destination': data['end'],
-          'departureTime': '6:00 AM', // Placeholder, updated later
-          'arrivalTime': '6:00 PM', // Placeholder, updated later
-          'seatNumber': 'A2',
-          'boardingPoint': data['boarding'],
-          'boardingTime': '6:00 AM',
-          'droppingPoint': data['ending'],
-          'droppingTime': '6:00 PM',
-        };
-      });
+
+      final seatResponse = await http.get(Uri.parse('${Url.Urls}/seats_fetch'));
+
+      if (seatResponse.statusCode == 200) {
+        final seatData = json.decode(seatResponse.body);
+        final seatNumber = seatData['seats'];
+
+        setState(() {
+          bookingDetails = {
+            'busOperator': 'Example Operator',
+            'busType': 'AC Sleeper',
+            'origin': data['start'],
+            'destination': data['end'],
+            'departureTime': '6:00 AM',
+            'arrivalTime': '6:00 PM',
+            'seatNumber': seatNumber.toString(),
+            'boardingPoint': data['boarding'],
+            'boardingTime': '6:00 AM',
+            'droppingPoint': data['ending'],
+            'droppingTime': '6:00 PM',
+          };
+        });
+      } else {
+        throw Exception('Failed to fetch seat details');
+      }
     } else {
       throw Exception('Failed to load booking details');
     }
@@ -67,13 +77,8 @@ class _TicketReviewScreenState extends State<TicketReviewScreen> {
     try {
       final response = await http.post(
         Uri.parse('${Url.Urls}/get/travel_time'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({
-          'start': start,
-          'end': end,
-        }),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'start': start, 'end': end}),
       );
 
       if (response.statusCode == 200) {
@@ -82,15 +87,11 @@ class _TicketReviewScreenState extends State<TicketReviewScreen> {
         final endingTime = data['ending_time'];
 
         setState(() {
-          // Update departureTime, arrivalTime, boardingTime, and droppingTime
           bookingDetails['departureTime'] = travelTime;
           bookingDetails['arrivalTime'] = endingTime;
-          bookingDetails['boardingTime'] = travelTime;  // Same as travelTime
-          bookingDetails['droppingTime'] = endingTime;  // Same as endingTime
+          bookingDetails['boardingTime'] = travelTime;
+          bookingDetails['droppingTime'] = endingTime;
         });
-
-        print('Travel Time: $travelTime');
-        print('Ending Time: $endingTime');
       } else {
         print('Error fetching travel time: ${response.body}');
       }
@@ -99,16 +100,10 @@ class _TicketReviewScreenState extends State<TicketReviewScreen> {
     }
   }
 
-
-
-
-
-
   @override
   void initState() {
     super.initState();
     _fetchBookingDetails().then((_) {
-      // After fetching booking details, fetch travel time
       _fetchTravelTime();
     });
   }
@@ -199,7 +194,11 @@ class _TicketReviewScreenState extends State<TicketReviewScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const PaymentPage(),
+                      builder: (context) => PaymentPage(
+                        passengerName: widget.passengerName,
+                        passengerGender: widget.passengerGender,
+                        passengerAge: widget.passengerAge,
+                      ),
                     ),
                   );
                 },

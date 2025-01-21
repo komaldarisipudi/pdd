@@ -28,7 +28,7 @@ class OwnerDetailPage extends StatelessWidget {
     );
 
     if (response.statusCode == 200) {
-      // Success
+      // Success: Show success dialog
       showDialog(
         context: context,
         builder: (context) {
@@ -47,7 +47,7 @@ class OwnerDetailPage extends StatelessWidget {
         },
       );
     } else {
-      // Error
+      // Error: Show error dialog
       final errorMessage = json.decode(response.body)['error'] ?? 'An error occurred';
       showDialog(
         context: context,
@@ -78,14 +78,13 @@ class OwnerDetailPage extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pop(context); // Navigate back
           },
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Name: $name', style: const TextStyle(fontSize: 20)),

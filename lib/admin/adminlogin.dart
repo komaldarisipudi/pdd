@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../Urls.dart';
 import 'admintools.dart';
-import 'package:bus/admin/adminforgot.dart';
 
 class adminlog extends StatefulWidget {
   const adminlog({Key? key}) : super(key: key);
@@ -124,22 +123,6 @@ class _adminlogState extends State<adminlog> {
                   prefixIcon: const Icon(Icons.lock, color: Colors.blue),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const adminfor()),
-                    );
-                  },
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(color: Colors.blue, fontSize: 16),
                   ),
                 ),
               ),

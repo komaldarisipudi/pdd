@@ -77,9 +77,10 @@ class _LoginPageState extends State<LoginPage> {
 
     // API endpoint for user signin
     final String apiUrl = '${Url.Urls}/user/signin'; // Replace with your backend URL
+    final String addEmailUrl = '${Url.Urls}/add_email'; // Endpoint to add email
 
     try {
-      // Send POST request
+      // Send POST request for login
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {
@@ -91,12 +92,35 @@ class _LoginPageState extends State<LoginPage> {
         }),
       );
 
-      // Check response status
       if (response.statusCode == 200) {
         // Login successful
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login successful')),
         );
+
+        // Send email to add_email route
+        final emailResponse = await http.post(
+          Uri.parse(addEmailUrl),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: json.encode({
+            'email': email,
+          }),
+        );
+
+        if (emailResponse.statusCode == 201) {
+          // Email added successfully
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email added successfully')),
+          );
+        } else {
+          // Email addition failed
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to add email: ${json.decode(emailResponse.body)['error']}')),
+          );
+        }
+
         // Navigate to the next screen, e.g., Home or Dashboard
         _navigateToHomePage();
       } else {
@@ -113,6 +137,7 @@ class _LoginPageState extends State<LoginPage> {
       print("Error: $e");
     }
   }
+
 
 
   @override

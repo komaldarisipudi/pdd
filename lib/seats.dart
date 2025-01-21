@@ -74,6 +74,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   // Update selected seats by calling the backend API
+  // Update selected seats by calling the backend API
   Future<void> _updateSeats() async {
     List<int> selectedSeats = [];
     for (int i = 0; i < _seatStatuses.length; i++) {
@@ -82,9 +83,15 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       }
     }
 
-    for (int seatNo in selectedSeats) {
-      await _updateSeatAvailability(seatNo);
+    if (selectedSeats.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No seats selected')),
+      );
+      return;
     }
+
+    // Send the selected seats to the server
+    await _sendSelectedSeatsToServer(selectedSeats);
 
     // Show confirmation message and navigate to next page
     ScaffoldMessenger.of(context).showSnackBar(
@@ -98,6 +105,26 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       ),
     );
   }
+
+// Send the selected seats to the Flask server
+  Future<void> _sendSelectedSeatsToServer(List<int> selectedSeats) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${Url.Urls}/seats'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'seats': selectedSeats.join(',')}),
+      );
+
+      if (response.statusCode == 201) {
+        print('Seats updated successfully');
+      } else {
+        throw Exception('Failed to update seats');
+      }
+    } catch (e) {
+      print('Error updating seats: $e');
+    }
+  }
+
 
   // Send a POST request to update a seat's availability
   Future<void> _updateSeatAvailability(int seatNo) async {

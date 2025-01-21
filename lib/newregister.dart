@@ -1,28 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // Import the http package
+import 'package:http/http.dart' as http;
 import 'Urls.dart';
-import 'home.dart'; // Your home screen or next page
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const RegisterPage(),
-    );
-  }
-}
+import 'home.dart';
+import 'login.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -33,77 +14,121 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   bool _isPasswordVisible = false;
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  bool _isOtpSent = false;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _otpController = TextEditingController();
+  final TextEditingController _mobileNumberController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
 
-  // API call to register the user
-  Future<void> _registerUser() async {
-    String name = _nameController.text;
-    String email = _emailController.text;
-    String password = _passwordController.text;
-
-    // Regular expression for email validation
+  // Send OTP to user's email
+  Future<void> _sendOtp() async {
+    String email = _emailController.text.trim();
     final emailRegex = RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      // Show an error if any field is empty
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
-      );
-      return;
-    }
-
     if (!emailRegex.hasMatch(email)) {
-      // Show an error if email is not valid
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid email address')),
       );
       return;
     }
 
-    // API endpoint for user signup
-    final String apiUrl = '${Url.Urls}/user/signup'; // Replace with your backend URL
-
     try {
-      // Send POST request
       final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({
-          'name': name,
-          'email': email,
-          'password': password,
-        }),
+        Uri.parse('${Url.Urls}/send_otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email}),
       );
 
-      // Check response status
-      if (response.statusCode == 201) {
-        // Registration successful
+      if (response.statusCode == 200) {
+        setState(() {
+          _isOtpSent = true;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User registered successfully')),
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const Komal()), // Navigate to the next screen
+          const SnackBar(content: Text('OTP sent successfully')),
         );
       } else {
-        // If registration failed, show error
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(json.decode(response.body)['error'])),
+          const SnackBar(content: Text('Failed to send OTP')),
         );
       }
     } catch (e) {
-      // If there's an error during the request
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Something went wrong. Please try again')),
+      );
+      print("Error sending OTP: $e");
+    }
+  }
+
+  // Verify OTP and register user
+  Future<void> _verifyOtpAndRegister() async {
+    String name = _nameController.text.trim();
+    String email = _emailController.text.trim();
+    String password = _passwordController.text;
+    String otp = _otpController.text.trim();
+    String mobileNumber = _mobileNumberController.text.trim();
+    String dob = _dobController.text.trim();
+
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        otp.isEmpty ||
+        mobileNumber.isEmpty ||
+        dob.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    try {
+      // First verify OTP
+      final otpResponse = await http.post(
+        Uri.parse('${Url.Urls}/verify_otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'otp': otp}),
+      );
+
+      if (otpResponse.statusCode == 200) {
+        // If OTP is verified, proceed with registration
+        final registerResponse = await http.post(
+          Uri.parse('${Url.Urls}/user/signup'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'name': name,
+            'email': email,
+            'password': password,
+            'phonenumber': mobileNumber,
+            'dob': dob,
+          }),
+        );
+
+        if (registerResponse.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Registration successful')),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginPage()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(json.decode(registerResponse.body)['error'])),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid OTP. Please try again')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Something went wrong. Please try again')),
       );
       print("Error: $e");
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -113,9 +138,7 @@ class _RegisterPageState extends State<RegisterPage> {
         title: const Text('Register'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Center(
@@ -127,34 +150,16 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
               const Text(
                 'Register an account',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blue),
               ),
               const SizedBox(height: 40),
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  hintText: 'User Name',
-                  prefixIcon: const Icon(Icons.person, color: Colors.blue),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
+              _buildTextField(_nameController, 'User Name', Icons.person),
               const SizedBox(height: 16),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  hintText: 'Email Address',
-                  prefixIcon: const Icon(Icons.email, color: Colors.blue),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
+              _buildTextField(_emailController, 'Email Address', Icons.email, enabled: !_isOtpSent),
+              const SizedBox(height: 16),
+              _buildTextField(_mobileNumberController, 'Mobile Number', Icons.phone, isNumeric: true),
+              const SizedBox(height: 16),
+              _buildTextField(_dobController, 'Date of Birth (YYYY-MM-DD)', Icons.calendar_today),
               const SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
@@ -164,9 +169,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   prefixIcon: const Icon(Icons.lock, color: Colors.blue),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
+                      _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                       color: Colors.blue,
                     ),
                     onPressed: () {
@@ -175,24 +178,24 @@ class _RegisterPageState extends State<RegisterPage> {
                       });
                     },
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 ),
               ),
+              if (_isOtpSent) ...[
+                const SizedBox(height: 16),
+                _buildTextField(_otpController, 'Enter OTP', Icons.security, isNumeric: true, maxLength: 6),
+              ],
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _registerUser, // Call the register method
+                onPressed: _isOtpSent ? _verifyOtpAndRegister : _sendOtp,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text(
-                  'Register',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                child: Text(
+                  _isOtpSent ? 'Verify & Register' : 'Send OTP',
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
             ],
@@ -201,6 +204,19 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
     );
   }
-}
 
-// Example placeholder Home screen
+  Widget _buildTextField(TextEditingController controller, String hintText, IconData icon,
+      {bool enabled = true, bool isNumeric = false, int? maxLength}) {
+    return TextField(
+      controller: controller,
+      enabled: enabled,
+      keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+      maxLength: maxLength,
+      decoration: InputDecoration(
+        hintText: hintText,
+        prefixIcon: Icon(icon, color: Colors.blue),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+}

@@ -142,20 +142,6 @@ class _LoginScreenState extends State<ownerstart> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10.0),
-              // Forget Password Link
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    // Handle "Forget Password?" logic here
-                  },
-                  child: const Text(
-                    'Forget Password?',
-                    style: TextStyle(color: Colors.blue),
-                  ),
-                ),
-              ),
               const SizedBox(height: 30.0),
               // Login Button
               ElevatedButton(

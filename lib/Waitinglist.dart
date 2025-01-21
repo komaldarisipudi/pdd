@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'Urls.dart';
-import 'home.dart';
+import 'home.dart'; // Assuming 'Komal' is defined in this file or update the import as needed.
 
 void main() {
   runApp(const MyApp());
@@ -75,7 +75,7 @@ class _WaitingListScreenState extends State<WaitingListScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchLastWaitingList();  // Fetch the last waiting list entry when the page loads
+    _fetchLastWaitingList(); // Fetch the last waiting list entry when the page loads
   }
 
   @override
@@ -154,31 +154,14 @@ class _WaitingListScreenState extends State<WaitingListScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Notify Button
+              // Continue Button
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    // Show notification when button is pressed
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('Notification'),
-                          content: const Text('You will be notified when the bus is available.'),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                // Navigate back to the Komal screen after pressing OK
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => Komal()), // Use your actual Komal class here
-                                );
-                              },
-                              child: const Text('OK'),
-                            ),
-                          ],
-                        );
-                      },
+                    // Navigate directly to the Komal screen when the button is pressed
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => Komal()), // Replace with your actual Komal class
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -189,7 +172,7 @@ class _WaitingListScreenState extends State<WaitingListScreen> {
                     ),
                   ),
                   child: const Text(
-                    'Notify When Bus Available',
+                    'Continue',
                     style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ),

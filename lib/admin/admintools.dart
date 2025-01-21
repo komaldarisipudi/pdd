@@ -2,6 +2,7 @@ import 'package:bus/admin/users.dart';
 import 'package:flutter/material.dart';
 
 import '../start.dart';
+import 'add_owners.dart';
 import 'owners.dart';
 
 class admintoo extends StatelessWidget {
@@ -75,6 +76,27 @@ class admintoo extends StatelessWidget {
                 ),
                 child: const Text(
                   'Owners',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Tools Button (Navigates to admintoo)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const addown()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  'Add Owners',
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
